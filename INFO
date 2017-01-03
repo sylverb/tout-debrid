@@ -1,0 +1,14 @@
+{
+"name": "alldebrid",
+"hostprefix": "1fichier.com,bigfile.to,datafilehost.com,datafile.com,facebook.com,filefactory.com,filerio.in,hitfile.net,mediafire.com,mega.co.nz,metacafe.com,novafile.com,oboom.com,rapidgator.net,rg.to,sendspace.com,share-online.biz,solidfiles.com,stagevu.com,turbobit.net,tusfiles.com,ulozto.net,unibytes.com,uplea.com,uploadable.ch,uploaded.net,ul.to,uptobox.com,uptostream.com,usersfiles.com,xvideos.com,xhamster.com,youporn.com,youtube.com,zippyshare.com",
+"displayname": "Tout-Debrid",
+"version": "1.0",
+"majorversion": "1",
+"minorversion": "0",
+"minfirmware": "1834",
+"authentication": "yes",
+"module": "toutdebrid.php",
+"class": "SynoFileHostingToutDebrid",
+"description": "tout-debrid.eu module, premium account only"
+}
+
