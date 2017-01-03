@@ -2,9 +2,10 @@
 
 /*-------------------------------------------------------------------------
 	File Hosting Module for tout-debrid.eu for DownloadStation by Synology
- version 1.0
+ version 1.1
 ---------------------------------------------------------------------------
  v1.0 : initial release.
+ v1.1 : add account type detection (free/premium)
 ---------------------------------------------------------------------------
  by Sylver (codeisalie@gmail.com)
  inspired from alldebrid plugin (by keltharak  keltharak@hotmail.com)
@@ -19,6 +20,8 @@ class SynoFileHostingToutDebrid
 	private $TOUTDEBRID_COOKIE = '/tmp/toutdebrid.cookie';
 	private $TOUTDEBRID_LOGIN_URL = 'http://tout-debrid.eu/login.php';
     private $TOUTDEBRID_DEBRID_URL = 'http://tout-debrid.eu/generateur-all.php';
+    private $TOUTDEBRID_ACCOUNT_URL = 'http://tout-debrid.eu/compte';
+    private $TOUTDEBRID_PREMIUM_ACCOUNT_KEYWORD = 'premium';
 
 	
     public function __construct($url, $username, $password, $hostInfo) {
@@ -66,7 +69,7 @@ class SynoFileHostingToutDebrid
 	//This function verifies and returns account type.
 	//Should be called when click on Verify button but doesn't work yet
 	// success :
-	// 		return USER_IS_PREMIUM synology code (see common.php in synology documentation)
+	// 		return USER_IS_PREMIUM or USER_IS_FREE synology code (see common.php in synology documentation)
 	// error :
 	//		return LOGIN_FAIL synology code (see common.php in synology documentation)
 	public function Verify($ClearCookie) 
@@ -74,11 +77,35 @@ class SynoFileHostingToutDebrid
 		$ret = $this->ToutDebridLogin($this->username, $this->password);
 		if (FALSE == $ret) {
 			return LOGIN_FAIL;
-		} else {
-			return USER_IS_PREMIUM;
+		} else if ($this->IsFreeAccount()) {
+            return USER_IS_FREE;
+        } else {
+            return USER_IS_PREMIUM;
 		}
 	}
-	
+
+    //This function checks if the account is paid or free.
+    //return TRUE if free account, FALSE if premium account
+    private function IsFreeAccount() {
+        $ret = TRUE;
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($curl, CURLOPT_USERAGENT, DOWNLOAD_STATION_USER_AGENT);
+        curl_setopt($curl, CURLOPT_COOKIEFILE, $this->TOUTDEBRID_COOKIE);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($curl, CURLOPT_URL, $this->TOUTDEBRID_ACCOUNT_URL);
+        $AccountRet = curl_exec($curl);
+        curl_close($curl);
+        preg_match('/Compte:.*<b>(.*)<\/b>/', $AccountRet, $match);
+        if (isset($match[0])) {
+            $compare = strtolower($match[0]);
+            if (strstr($compare, $this->TOUTDEBRID_PREMIUM_ACCOUNT_KEYWORD)) {
+                $ret = FALSE;
+            }
+        }
+        return $ret;
+    }
+
 	//This function performs login action.
 	// success : 
 	// 		return toutdebrid authentication session ID value
