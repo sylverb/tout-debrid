@@ -6,6 +6,7 @@
 ---------------------------------------------------------------------------
  v1.0 : initial release.
  v1.1 : add account type detection (free/premium)
+        add some additional error cases
 ---------------------------------------------------------------------------
  by Sylver (codeisalie@gmail.com)
  inspired from alldebrid plugin (by keltharak  keltharak@hotmail.com)
@@ -25,6 +26,7 @@ class SynoFileHostingToutDebrid
 
 	
     public function __construct($url, $username, $password, $hostInfo) {
+
 /*
         ini_set('display_errors', 0);
         ini_set('log_errors', 1);
@@ -200,8 +202,11 @@ class SynoFileHostingToutDebrid
 
         } else {
             // Link not found, find error
+            //
             // <b><font color=red> Ressayer dans quelques minutes, merci. </font></b>
             // <div style="font-size:14px; color:white;background-color:#01A9DC;padding:5px;"><b>Lien mort ou invalide</b></div>
+            // <b>H&#233;bergeur non pris en charge pour les membres gratuits <br> Pour plus d'h&#233;bergeurs et de t&#233;l&#233;chargements illimit&#233;s <br> Devenez un membre <a href="/offres" style="color: #333";>PREMIUM</a> &#224; partir de 2,80 &#128;</b>
+            // <b><font color=red> Notre compte a atteint la limite de telechargement, merci de patientez. </font></b>
             preg_match('/Ressayer dans quelques minutes/', $page, $error);
             if (!empty($error[0])) {
                 $DownloadInfo[DOWNLOAD_ERROR] = ERR_TRY_IT_LATER;
@@ -212,8 +217,14 @@ class SynoFileHostingToutDebrid
                     $DownloadInfo[DOWNLOAD_ERROR] = ERR_BROKEN_LINK;
                     $this->Log("Error : Broken link");
                 } else {
-                    $DownloadInfo[DOWNLOAD_ERROR] = ERR_FILE_NO_EXIST;
-                    $this->Log("Unknown error : ".$page);
+                    preg_match('/non pris en charge pour les membres gratuits/', $page, $error);
+                    if (!empty($error[0])) {
+                        $DownloadInfo[DOWNLOAD_ERROR] = ERR_REQUIRED_PREMIUM;
+                        $this->Log("Error : Broken link");
+                    } else {
+                        $DownloadInfo[DOWNLOAD_ERROR] = ERR_FILE_NO_EXIST;
+                        $this->Log("Unknown error : ".$page);
+                    }
                 }
             }
         }
